@@ -1,0 +1,13 @@
+create x;
+tape
+func highfive {
+	create y := 5;
+	cin y;
+	jump highfive;
+}
+{
+	create z := 0;
+	while [ z < 3 ] {
+		jump highfive;
+	};
+}

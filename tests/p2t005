@@ -1,0 +1,5 @@
+tape
+{
+	if [3-6/3 > 8] then while [4 == 2] repeat pick 9 cin Identifi;: cout 0;;until [7 < 8]	;;;
+	label identifi;
+}

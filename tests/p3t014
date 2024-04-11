@@ -1,0 +1,17 @@
+create z := 9;
+create y;
+tape
+func a{
+	create apa;
+	if[ y == 1]then{
+		create apb;
+		cin apa;
+	};
+	label apb;
+}
+{
+	create x;
+	label x;
+	jump y;
+	set z = z + z;
+}

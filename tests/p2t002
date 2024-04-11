@@ -1,0 +1,6 @@
+//p2t002, test var declaration and cout
+create x := 5 ;
+tape
+{
+	cout x ;
+}
