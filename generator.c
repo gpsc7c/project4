@@ -9,9 +9,13 @@
 
 static int varsCount = 0;	//counts unique vars generated
 static int labelCount = 0;	//counts unique labels generated
-#define NAMELEN 20
+#define NAMELEN 20		//used suggested name length
+//third version of nonterminals to prevent overlap in final function while loading
 char gennonterms[28][11] = {"TERMINAL", "<program>", "<func>", "<block>", "<vars>", "<facvars>",/*5*/ "<expr>", "<N>", "<N1>", "<A>", "<M>",/*10*/ "<R>", "<stats>", "<mStat>", "<stat>", "<in>",/*15*/ "<out>", "<if>", "<pick>", "<pickbody>", "<loop1>",/*20*/ "<loop2>", "<assign>", "<RBracket>", "<RTriplet>", "<R0>",/*25*/ "<label>", "<goto>"};
+//types of noces, not aall are used, but all were created in case they were needed
 enum nodetypes {TERMt, PROGt, FUNCt, BLOCt, VARSt, FACVt, EXPRt, Nt, N1t, At, Mt, Rt, STTSt, MSTAt, STATt, INt, OUTt, IFt, PICKt, PICBt, LOOP1t, LOOP2t, ASSIt, RBRAt, RTRIt, R0t, LABEt, GOTOt};
+//generate incremental variables and labels. 
+//seaparated into 2 purely out of preference when otherwise wouldn't save many lines anyway
 char varName[NAMELEN];
 char* plusVar(){
 	sprintf(varName, "T%d", varsCount++);
@@ -22,18 +26,26 @@ char* plusLabel(){
 	sprintf(labelName, "L%d", labelCount++);
 	return labelName;
 }
+
+//node pointer that exists to check if there is a function or not
 node* funcNode;
+/////////////////////////////
+//Handles Runtime Semantics//
+/////////////////////////////
 void recGen(node* dataNode, int* IDCount, FILE* out){
-	int i;
-	char label[NAMELEN], label2[NAMELEN], label3[NAMELEN], label4[NAMELEN], name[NAMELEN], name2[NAMELEN];
-	int nodeType = -1;
+	int i;//iterator for checking which nonterm the title of the dataNode is referencing
+	char label[NAMELEN], label2[NAMELEN], label3[NAMELEN], label4[NAMELEN], name[NAMELEN], name2[NAMELEN];//labels and names for navigation
+	int nodeType = -1;	//base inactive nodetype
+	//row and column for error calls
 	int* row = malloc(sizeof(int));
 	int* col = malloc(sizeof(int));
 	*row = 0;
 	*col = 0;
+	//skip if dataNode is nonfunctional
 	if(dataNode == NULL){
 		return;
 	}
+	//sets the node typt for the switch
 	for(i = 0; i < 28 && nodeType == -1; i++){
 		if(strcmp(gennonterms[i], dataNode->tTitle.nonterm) == 0){
 			nodeType = i;
@@ -131,12 +143,16 @@ void recGen(node* dataNode, int* IDCount, FILE* out){
 	case LABEt:	chkNode(dataNode, IDCount, out);
 			fprintf(out, "%s:\tNOOP\n", dataNode->two->tk->tokenInstance);
 			break;
+	//falls through into function for in place execution
 	case GOTOt:	strcpy(name, plusVar());	
 			if(funcNode == NULL || strcmp(funcNode->two->tk->tokenInstance, dataNode->two->tk->tokenInstance) != 0){	
 				fprintf(out, "\tBR %s\n", name);
 				break;
 			}
 	case FUNCt:	if(funcNode == NULL){
+				//Pushed onto stack here as we need to drop
+				//through func anyway, and it was easier to 
+				//keep track of
 				fprintf(out, "\tLOAD 0\n");
 				fprintf(out, "\tPUSH\n");
 				fprintf(out, "\tSTACKW 0\n");	
@@ -273,14 +289,16 @@ void recGen(node* dataNode, int* IDCount, FILE* out){
 			}
 			fprintf(out, "%s:\tNOOP\n", label);
 			break;
+	//all cases not already associated
 	default:
 		preStat(dataNode, IDCount, out);
 		break;
 	}
-	free(row);
-	free(col);
 	
 }
+////////////////////////////////////////////////////////////////////
+//calls the actual generator, serves as the start and ending point//
+////////////////////////////////////////////////////////////////////
 void generator(node* root, FILE* outFile){
 	funcNode = NULL;
 	if(root == NULL || strcmp(root->tTitle.nonterm, gennonterms[1])){

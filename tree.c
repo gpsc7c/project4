@@ -191,6 +191,8 @@ int chkNode(node* dataNode, int* IDCount, FILE* outFile){
 			else{
 				fprintf(outFile, "\tLOAD -7\n");
 			}
+			//PUSHes variables onto the stack in compiler and in 
+			//actual runtime execution.
 			push(dataNode->one->two->tk);
 			fprintf(outFile, "\tPUSH\n");
 			fprintf(outFile, "\tSTACKW 0\n");	
