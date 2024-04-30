@@ -1,0 +1,6 @@
+//p4g1
+create x:= 5;
+tape
+{
+	cin x;
+}

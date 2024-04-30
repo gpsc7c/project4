@@ -1,0 +1,6 @@
+//p4g2
+create x:= 5;
+tape
+{
+	cout x;
+}

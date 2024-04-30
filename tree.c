@@ -5,9 +5,9 @@
 #include <string.h>
 #include "IDStack.h"
 #include "tree.h"
-char testnonterms[28][11] = {"TERMINAL", "<program>", "<func>", "<block>", "<vars>", "<facvars>", "<expr>", "<N>", "<N1>", "<A>", "<M>", "<R>", "<stats>", "<mStat>", "<stat>", "<in>", "<out>", "<if>", "<pick>", "<pickbody>", "<loop1>", "<loop2>", "<assign>", "<RBracket>", "<RTriplet>", "<R0>", "<label>", "<goto>"};
+#include "generator.h"
+char testnonterms[28][11] = {"TERMINAL",/*0*/ "<program>", "<func>", "<block>", "<vars>", "<facvars>",/*5*/ "<expr>", "<N>", "<N1>", "<A>", "<M>",/*10*/ "<R>", "<stats>", "<mStat>", "<stat>", "<in>",/*15*/ "<out>", "<if>", "<pick>", "<pickbody>", "<loop1>",/**/ "<loop2>", "<assign>", "<RBracket>", "<RTriplet>", "<R0>"/**/, "<label>", "<goto>"};
 char* tokenNames[43] = {"IDTK", "INTTK", "ASSIGNTK", "GREATTK", "LESSTK", "ISEQUALTK", "NOTEQUALTK", "COLONTK", "COLONEQLTK", "PLUS", "MINUSTK", "MULTIPLYTK", "DIVIDETK", "EXPONTK", "DOTTK", "OPENPARENTK", "CLOSEPARENTK", "COMMATK", "OPENCURLTK", "CLOSECURLTK", "SEMICOLONTK", "OPENSQUARETK", "CLOSESQUARETK", "ORTK", "ANDTK", "STARTTK", "STOPTK", "WHILETK", "REPEATTK", "UNTILTK", "LABELTK", "RETURNTK", "CINTK", "COUTTK", "TAPETK", "JUMPTK", "IFTK", "THENTK", "PICKTK", "CREATETK", "SETTK", "FUNCTK", "EOFTK"};
-
 struct node* newTermNode(Ttoken* tk){ // Allocate memory for new node
     	 node* nNode
         	= (struct node*)malloc(sizeof(node));
@@ -103,34 +103,36 @@ void deleteTree(struct node* dataNode){
 //Steps through the node branches after checking nodes for//
 //relevant data in preorder format//////////////////////////
 ////////////////////////////////////////////////////////////
-void preStat(node *dataNode, int* IDCount){
+void preStat(node *dataNode, int* IDCount, FILE* outFile){
 	if(strcmp(dataNode->tTitle.nonterm, testnonterms[0])){
-		chkNode(dataNode, IDCount);
-		statSem(dataNode->one, IDCount);
-		statSem(dataNode->two, IDCount);
-		statSem(dataNode->three, IDCount);
-		statSem(dataNode->four, IDCount);
+		chkNode(dataNode, IDCount, outFile);
+		statSem(dataNode->one, IDCount, outFile);
+		statSem(dataNode->two, IDCount, outFile);
+		statSem(dataNode->three, IDCount, outFile);
+		statSem(dataNode->four, IDCount, outFile);
 	}
 }
 ////////////////////////////////////////////////////////////////////////
 //checks for starts of local and global scopes, else return to prestat//
 ////////////////////////////////////////////////////////////////////////
-void statSem(node* dataNode, int* IDCount){
+void statSem(node* dataNode, int* IDCount, FILE* outFile){
 	//checking for '<program>' and '<block>'
 	if(dataNode != NULL){
 		if(!strcmp(dataNode->tTitle.nonterm, testnonterms[1]) || !strcmp(dataNode->tTitle.nonterm, testnonterms[3])){
 			int i;
 			int *newIDCount = (int*) malloc(sizeof(int));
 			*newIDCount = 0;
-			
-			preStat(dataNode, newIDCount);
+			//recGen replaces preStat for runtime semantice
+			recGen(dataNode, newIDCount, outFile);
+			//Pop allocated variables off the stack
 			for( i = 0; i < *newIDCount; i++){
 				pop();
+				fprintf(outFile, "\tPOP\n");
 			}
 			free(newIDCount);
 		}
 		else{
-			preStat(dataNode, IDCount);
+			recGen(dataNode, IDCount, outFile);
 		}
 	}
 }
@@ -138,23 +140,24 @@ void statSem(node* dataNode, int* IDCount){
 //////////////////////////////////////////////////////////
 ////Function to check each relevant node for data errors//
 //////////////////////////////////////////////////////////
-void chkNode(node* dataNode, int* IDCount){
+int chkNode(node* dataNode, int* IDCount, FILE* outFile){
 	int* row = (int*)malloc(sizeof(int));//var to hold row from stack
 	int* col = (int*)malloc(sizeof(int));//var to hold column from stack
+	int funcvarFlag = 0;
 	//checks for declarations of func or variables 
-	if(strcmp(dataNode->tTitle.nonterm, testnonterms[5])==0 || strcmp(dataNode->tTitle.nonterm, testnonterms[2]) == 0){
-		if(dataNode->two->tk->ID == IDTK){
+	if((strcmp(dataNode->tTitle.nonterm, testnonterms[4])==0 && (funcvarFlag = 1)) || strcmp(dataNode->tTitle.nonterm, testnonterms[2]) == 0){
+		if(funcvarFlag == 0 && dataNode->two->tk->ID == IDTK){
 			//search stack
 			int dist = find(dataNode->two->tk, row, col);
 			//if found, error out due to conflict
 			if( dist != -1){
-				fprintf(stderr, "\nERROR: IDStack.c: searchVar:"
+				fprintf(stderr, "\nERROR: tree.c: chkNode:"
 					" Variable of ID '%s' already defined"
 					" in this scope.\n"
 					": Repeat definition on line %d at "
 					"char %d\n"
 					": Initial definition on line "
-					"%d at char %d.", dataNode->two->tk->tokenInstance, 
+					"%d at char %d.\n", dataNode->two->tk->tokenInstance, 
 					dataNode->two->tk->row, dataNode->two->tk->column,
 					*row, *col);
 				exit(-1);	
@@ -162,6 +165,37 @@ void chkNode(node* dataNode, int* IDCount){
 			//else push onto stack
 			push(dataNode->two->tk);
 			*IDCount += 1;
+			return dist;
+		}
+		else if(funcvarFlag == 1 && dataNode->one != NULL){
+			//search stack
+			int dist = find(dataNode->one->two->tk, row, col);
+			//if found, error out due to conflict
+			if( dist != -1){
+				fprintf(stderr, "\nERROR: tree.c: chkNode:"
+					" Variable of ID '%s' already defined"
+					" in this scope.\n"
+					": Repeat definition on line %d at "
+					"char %d\n"
+					": Initial definition on line "
+					"%d at char %d.\n", dataNode->one->two->tk->tokenInstance, 
+					dataNode->one->two->tk->row, dataNode->one->two->tk->column,
+					*row, *col);
+				exit(-1);	
+			}
+			//else push onto stack and write to file for
+			//loading variables
+			if(dataNode->two != NULL){
+				fprintf(outFile, "\tLOAD %s\n", dataNode->two->tk->tokenInstance);
+			}
+			else{
+				fprintf(outFile, "\tLOAD -7\n");
+			}
+			push(dataNode->one->two->tk);
+			fprintf(outFile, "\tPUSH\n");
+			fprintf(outFile, "\tSTACKW 0\n");	
+			*IDCount += 1;
+			return dist;
 		}
 	}
 	//looks for any occasions where vars might be used
@@ -194,6 +228,8 @@ void chkNode(node* dataNode, int* IDCount){
 					temp,temprow,tempcol);
 			exit(-1); 
 		}
+		return dist;
 	}
+	return -3;
 }
 #endif

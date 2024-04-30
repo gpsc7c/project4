@@ -1,0 +1,13 @@
+//p4g4
+create x := 5;
+create y;
+tape
+func e{
+	set y = 49 + 21 / 7 + ^ x;
+}
+{
+	y = 8;
+	jump e;
+	repeat y = y + 1; until [y > 10] ;
+	cout y;
+}

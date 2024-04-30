@@ -1,0 +1,16 @@
+//p4g4
+create x := 5;
+create y;
+tape
+func e{
+	set y = 49 + 21 / 7 + ^ x;
+}
+{
+	y = 8;
+	jump e;
+	cout x;
+	if [y == 5]
+	then
+	y = ^5;;
+	cout y;
+}

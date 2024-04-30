@@ -393,7 +393,7 @@ node* N(Ttoken* tk, FILE* file, char* c, int* row, int* col){
 //required node for expression pattern: <N> - <expression> | <N>
 node* expr(Ttoken* tk, FILE* file, char* c, int* row, int* col){
 	node* nNode = newNode(nonterms[6]);
-	nNode-> one = N(tk, file, c, row, col);
+	nNode->one = N(tk, file, c, row, col);
 	if(tk->ID == MINUSTK){
 		nNode->two = newTermNode(tk);
 		*tk = scanner(file, c, row, col);
@@ -499,10 +499,8 @@ node* program(Ttoken* tk, FILE* file, char* c, int* row, int* col){
 		
 		if(tk->ID == FUNCTK){
 			root->three = func(tk,file,c,row,col);
-			root->four = block(tk,file,c,row,col);
-			return root;
 		}
-		root->three = block(tk,file,c,row,col);
+		root->four = block(tk,file,c,row,col);
 		return root;
 	}
 	error(34, tk->ID, tk->row, tk->column);
