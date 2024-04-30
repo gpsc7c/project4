@@ -300,7 +300,7 @@ node* stat(Ttoken* tk, FILE* file, char* c, int* row, int* col){
 //required node for mStat pattern: [empty] | <stat> <mStat>
 node* mStat(Ttoken* tk, FILE* file, char* c, int* row, int* col){
 	node* nNode = newNode(nonterms[13]);
-	if(tk->ID == CINTK || tk->ID == COUTTK ||tk->ID == OPENCURLTK ||tk->ID == IFTK ||tk->ID == WHILETK ||tk->ID == REPEATTK ||tk->ID == SETTK ||tk->ID == JUMPTK ||tk->ID == LABELTK ||tk->ID == PICKTK){		
+	if(tk->ID == IDTK || tk->ID == CINTK || tk->ID == COUTTK ||tk->ID == OPENCURLTK ||tk->ID == IFTK ||tk->ID == WHILETK ||tk->ID == REPEATTK ||tk->ID == SETTK ||tk->ID == JUMPTK ||tk->ID == LABELTK ||tk->ID == PICKTK){		
 		nNode->one = stat(tk, file, c, row, col);
 		nNode->two = mStat(tk, file, c, row, col);
 	}

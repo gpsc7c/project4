@@ -1,16 +1,34 @@
-Invoked with statSem [file]
+Using LOCAL (simultanteous) option
+Invoked with ./compfs [file]
+Invocation without file will allow keyboard input.
 Author: Gregory Shelton
-Started (DD/MM/YYYY): 28/03/2024
+Started (DD/MM/YYYY): 04/04/2024
 CLASS:   Code Translation
 PROFESSOR: Mark Hauschild
-PROJECT: Program Translation Project 3 Static Semantics
-PURPOSE: Create a variable usage check using the scanner and parser from previous project designed to be used in a compiler.
-HELP:	 Command is -h, or putting in more (or less) information than is necessary.
+PROJECT: Program Translation Project 4 Runtime Semantics
+PURPOSE: Output code using the scanner, parser, and static semantics from previous project as a functional compiler.
+HELP:	 Command is -h, or invocation while putting in more (or less) information than is necessary.
 COMPILATION METHOD: Makefile
 	 Compile with make, remove compiled files with make clean
-	 invoke with "./scanner [filename]"
+FILES: 
+	generator.h: The location of generator.c's function definitions used in
+		     used in other files
+	generator.c: generates runtime semantics for use in compilation and
+		     translation to UMSL assembly language
+	tree.c:      updated from tree.c in previous to interweave with
+		     generator.c
+	initializer.c: Final location of main for initial program invocation.
+	t folder:    Includes tests for this file.
+	p4g[#]:      Where # is a wildcard, respectively, from 1 to 12, tests 
+		     variable declares and cin, cout, assignment, expressions,
+		     different expressions, (language has built in checks for
+		     divide by 0 and over/underflow), function/goto, pick, if,
+		     while loop, repeat until loop, repeat until loop again, and		     label jumping.
+
+
+STATIC SEMANTICS INFORMATION
 FILES:
-	IDStack.h: The location of IDStack.S's function definitions and the 
+	IDStack.h: The location of IDStack.c's function definitions and the 
 		   type definitions for sStack and eElement.
 	IDStack.c: The location of the find, push, and pop functions for the
 		   stack.
@@ -32,7 +50,7 @@ FILES:
 
 
 
-parser information
+PARSER INFORMATION
 FILES:	 
 	frontEnd.c: The file the program starts execution in.
 	Makefile:   The make file.

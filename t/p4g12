@@ -1,0 +1,12 @@
+//p4g4
+create x := 5;
+create y;
+tape
+{
+	create e;
+	y = 8;
+	jump e;
+	y = 7;
+	label e;
+	cout y;
+}
